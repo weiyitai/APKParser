@@ -17,97 +17,157 @@
 
 package com.jaredrummler.apkparser.sample.activities;
 
+import android.app.ActionBar;
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
-import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.jaredrummler.apkparser.ApkParser;
 import com.jaredrummler.apkparser.model.DexInfo;
+import com.jaredrummler.apkparser.sample.R;
 import com.jaredrummler.apkparser.sample.dialogs.XmlListDialog;
 import com.jaredrummler.apkparser.sample.fragments.AppListFragment;
 import com.jaredrummler.apkparser.sample.interfaces.ApkParserSample;
 import com.jaredrummler.apkparser.sample.util.Helper;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity implements ApkParserSample {
+public class MainActivity extends Activity implements ApkParserSample {
 
-  @Override protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    if (savedInstanceState == null) {
-      getFragmentManager()
-          .beginTransaction()
-          .add(android.R.id.content, new AppListFragment())
-          .commit();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState == null) {
+            showFragment(true);
+        }
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setSubtitle(R.string.user_app);
+        }
+
     }
-  }
 
-  @Override public void openXmlFile(PackageInfo app, String xml) {
-    Intent intent = new Intent(this, XmlSourceViewerActivity.class);
-    intent.putExtra("app", app);
-    intent.putExtra("xml", xml);
-    startActivity(intent);
-  }
-
-  @Override public void listXmlFiles(final PackageInfo app) {
-    final ProgressDialog pd = new ProgressDialog(this);
-    pd.setMessage("Please wait...");
-    pd.show();
-
-    new AsyncTask<Void, Void, String[]>() {
-
-      @Override protected String[] doInBackground(Void... params) {
-        return Helper.getXmlFiles(app.applicationInfo.sourceDir);
-      }
-
-      @Override protected void onPostExecute(String[] items) {
-        pd.dismiss();
-        if (!isFinishing()) {
-          XmlListDialog.show(MainActivity.this, app, items);
-        }
-      }
-    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-  }
-
-  @Override public void showMethodCount(final PackageInfo app) {
-    new Thread(new Runnable() {
-
-      @Override public void run() {
-        ApkParser parser = ApkParser.create(app);
-        try {
-          List<DexInfo> dexInfos = parser.getDexInfos();
-          int methodCount = 0;
-          for (DexInfo dexInfo : dexInfos) {
-            methodCount += dexInfo.header.methodIdsSize;
-          }
-          String message = NumberFormat.getNumberInstance().format(methodCount);
-          toast(message, Toast.LENGTH_SHORT);
-        } catch (IOException e) {
-          toast(e.getMessage(), Toast.LENGTH_LONG);
-        } finally {
-          parser.close();
-        }
-      }
-    }).start();
-  }
-
-  private void toast(final String message, final int length) {
-    if (Looper.myLooper() == Looper.getMainLooper()) {
-      Toast.makeText(getApplicationContext(), message, length).show();
-    } else {
-      runOnUiThread(new Runnable() {
-
-        @Override public void run() {
-          Toast.makeText(getApplicationContext(), message, length).show();
-        }
-      });
+    /**
+     * @param userApp 是否只显示第三方应用
+     */
+    private void showFragment(boolean userApp) {
+        AppListFragment fragment = new AppListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("user_app", userApp);
+        fragment.setArguments(bundle);
+        getFragmentManager()
+                .beginTransaction()
+                .replace(android.R.id.content, fragment)
+                .commit();
     }
-  }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_filter, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d("MainActivity", "item.getItemId():" + item.getItemId());
+        CharSequence title = item.getTitle();
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setSubtitle(title);
+        }
+        showFragment(item.getItemId() == R.id.user_app);
+        return true;
+    }
+
+    @Override
+    public void openXmlFile(PackageInfo app, String xml) {
+        Intent intent = new Intent(this, XmlSourceViewerActivity.class);
+        intent.putExtra("app", app);
+        intent.putExtra("xml", xml);
+        startActivity(intent);
+    }
+
+    @Override
+    public void listXmlFiles(final PackageInfo app) {
+        new ListXmlTask(this).execute(app);
+    }
+
+    static class ListXmlTask extends AsyncTask<PackageInfo, Void, String[]> {
+
+        WeakReference<Activity> mWeakReference;
+        private ProgressDialog mPd;
+        private PackageInfo mInfo;
+
+        public ListXmlTask(Activity context) {
+            mWeakReference = new WeakReference<>(context);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Context context = mWeakReference.get();
+            if (context != null) {
+                mPd = new ProgressDialog(context);
+                mPd.setMessage("Please wait...");
+                mPd.show();
+            }
+        }
+
+        @Override
+        protected String[] doInBackground(PackageInfo... packageInfos) {
+            mInfo = packageInfos[0];
+            return Helper.getXmlFiles(mInfo.applicationInfo.sourceDir);
+        }
+
+        @Override
+        protected void onPostExecute(String[] items) {
+            super.onPostExecute(items);
+            mPd.dismiss();
+            if (mWeakReference.get() != null) {
+                XmlListDialog.show(mWeakReference.get(), mInfo, items);
+            }
+        }
+    }
+
+    @SuppressWarnings("AlibabaThreadPoolCreation")
+    @Override
+    public void showMethodCount(final PackageInfo app) {
+        Executors.newCachedThreadPool().execute(() -> {
+            ApkParser parser = ApkParser.create(app);
+            try {
+                List<DexInfo> dexInfos = parser.getDexInfos();
+                int methodCount = 0;
+                for (DexInfo dexInfo : dexInfos) {
+                    methodCount += dexInfo.header.methodIdsSize;
+                }
+                String message = NumberFormat.getNumberInstance().format(methodCount);
+                toast(message, Toast.LENGTH_SHORT);
+            } catch (IOException e) {
+                toast(e.getMessage(), Toast.LENGTH_LONG);
+            } finally {
+                parser.close();
+            }
+        });
+    }
+
+    private void toast(final String message, final int length) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            Toast.makeText(getApplicationContext(), message, length).show();
+        } else {
+            runOnUiThread(() -> Toast.makeText(getApplicationContext(), message, length).show());
+        }
+    }
 }

@@ -17,4 +17,6 @@
 
 <resources>
   <string name="app_name">APK Parser Sample</string>
+  <string name="user_app">用户应用</string>
+  <string name="system_app">系统应用</string>
 </resources>

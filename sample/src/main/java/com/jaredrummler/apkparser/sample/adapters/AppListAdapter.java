@@ -39,46 +39,64 @@ import static com.jaredrummler.apkparser.sample.picasso.AppIconRequestHandler.SC
 
 public class AppListAdapter extends BaseAdapter {
 
-  private final List<PackageInfo> apps;
-  private final LayoutInflater inflater;
-  private final PackageManager pm;
-  private final Picasso picasso;
-  private final int size;
+    private final List<PackageInfo> apps;
+    private final LayoutInflater inflater;
+    private final PackageManager pm;
+    private final Picasso picasso;
+    private final int size;
 
-  public AppListAdapter(Context context, List<PackageInfo> installedApps) {
-    apps = installedApps;
-    inflater = LayoutInflater.from(context);
-    picasso = Picasso.with(context);
-    size = Density.toPx(context, 46);
-    pm = context.getPackageManager();
-  }
-
-  @Override public int getCount() {
-    return apps.size();
-  }
-
-  @Override public PackageInfo getItem(int position) {
-    return apps.get(position);
-  }
-
-  @Override public long getItemId(int position) {
-    return position;
-  }
-
-  @Override public View getView(int position, View convertView, ViewGroup parent) {
-    if (convertView == null) {
-      convertView = inflater.inflate(R.layout.list_item_app, parent, false);
+    public AppListAdapter(Context context, List<PackageInfo> installedApps) {
+        apps = installedApps;
+        inflater = LayoutInflater.from(context);
+        picasso = Picasso.with(context);
+        size = Density.toPx(context, 46);
+        pm = context.getPackageManager();
     }
-    ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView);
-    TextView textView = (TextView) convertView.findViewById(R.id.textView);
-    PackageInfo packageInfo = getItem(position);
-    textView.setText(AppNames.getLabel(pm, packageInfo));
-    picasso.load(Uri.parse(SCHEME_PNAME + ":" + packageInfo.packageName))
-        .placeholder(android.R.drawable.sym_def_app_icon)
-        .resize(size, size)
-        .centerInside()
-        .into(imageView);
-    return convertView;
-  }
+
+    @Override
+    public int getCount() {
+        return apps.size();
+    }
+
+    @Override
+    public PackageInfo getItem(int position) {
+        return apps.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ListHolder holder;
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.list_item_app, parent, false);
+            holder = new ListHolder(convertView);
+            convertView.setTag(holder);
+        } else {
+            holder = (ListHolder) convertView.getTag();
+        }
+        PackageInfo packageInfo = getItem(position);
+        holder.mTextView.setText(AppNames.getLabel(pm, packageInfo));
+        picasso.load(Uri.parse(SCHEME_PNAME + ":" + packageInfo.packageName))
+                .placeholder(android.R.drawable.sym_def_app_icon)
+                .resize(size, size)
+                .centerInside()
+                .into(holder.mImageView);
+        return convertView;
+    }
+
+    static class ListHolder {
+
+        private final ImageView mImageView;
+        private final TextView mTextView;
+
+        public ListHolder(View convertView) {
+            mImageView = convertView.findViewById(R.id.imageView);
+            mTextView = convertView.findViewById(R.id.textView);
+        }
+    }
 
 }
