@@ -88,3 +88,4 @@ For example, apk title will be '@string/app_name' instead of 'WeChat'.
 ___
 
 APK Parser is based on [CaoQianLi's apk-parser](https://github.com/CaoQianLi/apk-parser)
+you can download apk here [apk](https://github.com/weiyitai/APKParser/releases/download/v1.0/sample-debug.apk)
