@@ -21,11 +21,15 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.jaredrummler.apkparser.sample.interfaces.ApkParserSample;
 import com.jaredrummler.apkparser.sample.util.AppNames;
+
+import java.lang.reflect.Field;
 
 public class XmlListDialog extends DialogFragment {
 
@@ -45,12 +49,34 @@ public class XmlListDialog extends DialogFragment {
         return new AlertDialog.Builder(getActivity())
                 .setTitle(AppNames.getLabel(getActivity().getPackageManager(), app))
                 .setItems(items, (dialog, which) -> {
+//                    keepDialog(dialog, false);
                     if (getActivity() instanceof ApkParserSample) {
                         ApkParserSample callback = (ApkParserSample) getActivity();
                         callback.openXmlFile(app, items[which]);
                     }
                 })
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> keepDialog(dialog, true))
                 .create();
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("XmlListDialog", "onPause");
+    }
+
+    private void keepDialog(DialogInterface dialog, boolean b) {
+        try {
+            Class<?> aClass = dialog.getClass().getSuperclass();
+            Field mShowsDialog = aClass.getDeclaredField("mShowing");
+            mShowsDialog.setAccessible(true);
+            Object o = mShowsDialog.get(dialog);
+            Log.d("AppDialog", "o:" + o);
+            mShowsDialog.set(dialog, b);
+        } catch (Exception e) {
+            Log.d("XmlListDialog", "Exception");
+            e.printStackTrace();
+        }
+    }
+
 }

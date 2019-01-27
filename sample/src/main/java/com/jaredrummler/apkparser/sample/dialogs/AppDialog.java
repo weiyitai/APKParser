@@ -23,9 +23,12 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.jaredrummler.apkparser.sample.interfaces.ApkParserSample;
 import com.jaredrummler.apkparser.sample.util.AppNames;
+
+import java.lang.reflect.Field;
 
 public class AppDialog extends DialogFragment {
 
@@ -45,8 +48,10 @@ public class AppDialog extends DialogFragment {
                 "Get XML files",
                 "Get method count"
         };
+//        keepDialog(false);
         return new AlertDialog.Builder(getActivity())
                 .setTitle(AppNames.getLabel(getActivity().getPackageManager(), app))
+                .setCancelable(false)
                 .setItems(items, (dialog, which) -> {
                     if (getActivity() instanceof ApkParserSample) {
                         ApkParserSample callback = (ApkParserSample) getActivity();
@@ -56,9 +61,11 @@ public class AppDialog extends DialogFragment {
                                 break;
                             case 1:
                                 callback.listXmlFiles(app);
+//                                keepDialog(true);
                                 break;
                             case 2:
                                 callback.showMethodCount(app);
+//                                keepDialog(false);
                                 break;
                             default:
                                 break;
@@ -67,6 +74,22 @@ public class AppDialog extends DialogFragment {
                 })
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
                 .create();
+    }
+
+
+    private void keepDialog(boolean keep) {
+        try {
+            Class<DialogFragment> dialogFragmentClass = DialogFragment.class;
+            Field mShowsDialog = dialogFragmentClass.getDeclaredField("mShowsDialog");
+            mShowsDialog.setAccessible(true);
+            Object o = mShowsDialog.get(this);
+            Log.d("AppDialog", "o:" + o);
+            mShowsDialog.set(this, keep);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
 }

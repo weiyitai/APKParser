@@ -39,7 +39,7 @@ import static com.jaredrummler.apkparser.sample.picasso.AppIconRequestHandler.SC
 
 public class AppListAdapter extends BaseAdapter {
 
-    private final List<PackageInfo> apps;
+    private List<PackageInfo> apps;
     private final LayoutInflater inflater;
     private final PackageManager pm;
     private final Picasso picasso;
@@ -86,6 +86,13 @@ public class AppListAdapter extends BaseAdapter {
                 .centerInside()
                 .into(holder.mImageView);
         return convertView;
+    }
+
+    public void setApps(List<PackageInfo> apps) {
+        if (apps != null) {
+            this.apps = apps;
+            notifyDataSetChanged();
+        }
     }
 
     static class ListHolder {

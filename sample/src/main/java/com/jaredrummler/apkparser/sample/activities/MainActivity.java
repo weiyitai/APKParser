@@ -26,9 +26,12 @@ import android.content.pm.PackageInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.jaredrummler.apkparser.ApkParser;
@@ -47,30 +50,63 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity implements ApkParserSample {
 
+    private AppListFragment mFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             showFragment(true);
         }
         ActionBar actionBar = getActionBar();
+        Log.d("MainActivity", "actionBar:" + actionBar);
         if (actionBar != null) {
             actionBar.setSubtitle(R.string.user_app);
+//            TextView textView = new TextView(this);
+//            textView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+//            textView.setText("dsdsd");
+//            textView.setTextColor(getResources().getColor(android.R.color.white));
+//            actionBar.setCustomView(R.layout.search_view);
         }
 
+        EditText editText = findViewById(R.id.et_search);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (mFragment != null) {
+                    mFragment.onSearchTextChange(s);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("MainActivity", "onResume");
     }
 
     /**
      * @param userApp 是否只显示第三方应用
      */
     private void showFragment(boolean userApp) {
-        AppListFragment fragment = new AppListFragment();
+        mFragment = new AppListFragment();
         Bundle bundle = new Bundle();
         bundle.putBoolean("user_app", userApp);
-        fragment.setArguments(bundle);
+        mFragment.setArguments(bundle);
         getFragmentManager()
                 .beginTransaction()
-                .replace(android.R.id.content, fragment)
+                .replace(R.id.content, mFragment)
                 .commit();
     }
 
