@@ -34,9 +34,7 @@ import com.jaredrummler.apkparser.sample.util.AppNames;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class AppListFragment extends ListFragment implements AdapterView.OnItemClickListener {
 
@@ -72,7 +70,7 @@ public class AppListFragment extends ListFragment implements AdapterView.OnItemC
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        AppDialog.show(getActivity(), installedPackages.get(position));
+        AppDialog.show(getActivity(), mListAdapter.getItem(position));
     }
 
     /**

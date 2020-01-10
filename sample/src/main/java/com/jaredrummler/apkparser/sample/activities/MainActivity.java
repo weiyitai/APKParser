@@ -63,11 +63,6 @@ public class MainActivity extends Activity implements ApkParserSample {
         Log.d("MainActivity", "actionBar:" + actionBar);
         if (actionBar != null) {
             actionBar.setSubtitle(R.string.user_app);
-//            TextView textView = new TextView(this);
-//            textView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-//            textView.setText("dsdsd");
-//            textView.setTextColor(getResources().getColor(android.R.color.white));
-//            actionBar.setCustomView(R.layout.search_view);
         }
 
         EditText editText = findViewById(R.id.et_search);
@@ -87,7 +82,6 @@ public class MainActivity extends Activity implements ApkParserSample {
             public void afterTextChanged(Editable s) {
             }
         });
-
     }
 
     @Override

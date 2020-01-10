@@ -43,13 +43,13 @@ public class AppListAdapter extends BaseAdapter {
     private final LayoutInflater inflater;
     private final PackageManager pm;
     private final Picasso picasso;
-    private final int size;
+//    private final int size;
 
     public AppListAdapter(Context context, List<PackageInfo> installedApps) {
         apps = installedApps;
         inflater = LayoutInflater.from(context);
         picasso = Picasso.with(context);
-        size = Density.toPx(context, 46);
+//        size = Density.toPx(context, 46);
         pm = context.getPackageManager();
     }
 
@@ -79,11 +79,12 @@ public class AppListAdapter extends BaseAdapter {
             holder = (ListHolder) convertView.getTag();
         }
         PackageInfo packageInfo = getItem(position);
-        holder.mTextView.setText(AppNames.getLabel(pm, packageInfo));
+        holder.mTextView.setText(String.format("%s  --%s", AppNames.getLabel(pm, packageInfo), packageInfo.applicationInfo.targetSdkVersion));
         picasso.load(Uri.parse(SCHEME_PNAME + ":" + packageInfo.packageName))
                 .placeholder(android.R.drawable.sym_def_app_icon)
-                .resize(size, size)
-                .centerInside()
+                // 部分应用会崩溃
+//                .resize(size, size)
+//                .centerInside()
                 .into(holder.mImageView);
         return convertView;
     }

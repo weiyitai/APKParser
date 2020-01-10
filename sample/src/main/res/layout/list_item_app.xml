@@ -24,11 +24,11 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="46dp"
+        android:layout_height="46dp"
         android:layout_gravity="center_vertical"
         android:layout_marginBottom="8dp"
-        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:src="@android:drawable/sym_def_app_icon"/>
 
@@ -37,6 +37,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
         android:textAppearance="@android:style/TextAppearance.Medium"/>
 </LinearLayout>
